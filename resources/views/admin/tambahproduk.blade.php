@@ -23,9 +23,6 @@
     <section class="bg-white rounded-lg shadow-md overflow-hidden">
       <div class="p-6">
 
-        <form id="form-single-product" method="POST" action="{{ route('tambahproduk.store') }}" class="p-6 space-y-4">
-            @csrf
-
          <div class="flex justify-end mb-4">
             <button
                 type="button"
@@ -33,7 +30,8 @@
                 class="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition duration-200">
                 + Tambah Produk
             </button>
-            </div>
+         </div>
+
           <div class="overflow-x-auto bg-white rounded shadow-sm border">
 <table class="min-w-full border border-gray-200 rounded-lg">
     <thead class="bg-gray-100">
@@ -74,7 +72,6 @@
           </div>
 
           <p class="mt-3 text-sm text-gray-500">Catatan: pastikan field yang wajib diisi sebelum menyimpan.</p>
-        </form>
 
       </div>
     </section>

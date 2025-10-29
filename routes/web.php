@@ -16,9 +16,10 @@ Route::get('/admin/laporan', fn() => view('admin.laporan'))->name('laporan');
 
 # Produk routes
 
+// Route dengan parameter harus didefinisikan SEBELUM route tanpa parameter
+Route::delete('/admin/tambahproduk/{id}', [TambahProdukController::class, 'destroy'])->name('tambahproduk.destroy')->where('id', '[0-9]+');
 Route::get('/admin/tambahproduk', [TambahProdukController::class, 'index'])->name('tambahproduk.index');
 Route::post('/admin/tambahproduk', [TambahProdukController::class, 'store'])->name('tambahproduk.store');
-Route::delete('/admin/tambahproduk/{id}', [TambahProdukController::class, 'destroy'])->name('tambahproduk.destroy');
 
 
 #stok routes
