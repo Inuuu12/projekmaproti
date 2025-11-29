@@ -10,12 +10,17 @@ class Stok extends Model
     protected $table = 'stoks';
 
     protected $fillable = [
-        'nama',
-        'harga',
+        'produk_id',
         'tanggal_masuk',
         'tanggal_kadaluarsa',
         'stok',
-        'cabang_id'
+        'cabang'
     ];
+    public function produk() // <-- Nama method ini harus 'produk'
+    {
+        // Asumsi foreign key di tabel 'stoks' adalah 'produk_id'
+        // dan Model targetnya adalah App\Models\Produk
+        return $this->belongsTo(Produk::class);
+    }
 }
 

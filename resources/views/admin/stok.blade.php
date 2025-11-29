@@ -2,196 +2,310 @@
 
 @section('content')
 <div class="min-h-screen p-6 bg-gray-100">
-  <div class="max-w-6xl mx-auto">
-    <!-- Top bar -->
-    <header class="bg-gray-800/90 text-gray-100 rounded-lg px-6 py-4 flex items-center justify-between mb-6">
-      <div>
-        <h2 class="text-xl font-semibold">Stok Produk · Cabang B</h2>
-        <p class="text-sm text-gray-300">Kelola stok masuk/keluar dan kadaluarsa</p>
-      </div>
-    </header>
+    <div class="max-w-6xl mx-auto">
 
-    <section class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-4 border-b border-gray-200 flex items-center justify-between">
-        <div class="text-sm text-gray-600">Daftar stok produk di cabang.</div>
-        <div class="flex items-center gap-4">
-        <select id="select-cabang" class="bg-gray text-sm rounded border px-4 py-2">
-          <option value="b">Cabang B</option>
-          <option value="a">Cabang A</option>
-        </select>
-        <button id="btn-open-modal" class="px-4 py-2 bg-blue-600 text-white rounded">Tambah Stok</button>
-      </div>
-      </div>
+        {{-- === BAGIAN ALERT (PESAN SISTEM) === --}}
+        @if(session('success'))
+            <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
+        @if(session('warning'))
+            <div class="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-yellow-700 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                <span>{{ session('warning') }}</span>
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <span>{{ session('error') }}</span>
+            </div>
+        @endif
 
-      <div class="p-4">
-        @php
-          // sample data fallback — controller should pass $stoks (collection) to view
-          $stoks = $stoks ?? collect([
-            (object)['kode'=>'Rm-010925','nama'=>'Roti Manis','harga'=>5000,'produksi'=>'2025-09-01','expired'=>'2025-09-05','masuk'=>50,'keluar'=>20],
-            (object)['kode'=>'Ra-210925','nama'=>'Roti a','harga'=>5000,'produksi'=>'2025-09-21','expired'=>'2025-09-26','masuk'=>50,'keluar'=>20],
-            (object)['kode'=>'Rb-210925','nama'=>'Roti b','harga'=>5000,'produksi'=>'2025-09-21','expired'=>'2025-09-26','masuk'=>50,'keluar'=>20],
-          ]);
-        @endphp
+        {{-- === HEADER HALAMAN === --}}
+        <header class="bg-gray-800/90 text-gray-100 rounded-lg px-6 py-4 flex items-center justify-between mb-6 shadow-lg">
+            <div>
+                <h2 class="text-xl font-semibold">
+                    @if($cabangDipilih)
+                        Stok Produk: Cabang {{ $cabangDipilih }}
+                    @else
+                        Total Stok Semua Cabang
+                    @endif
+                </h2>
+                <p class="text-sm text-gray-300 mt-1">Kelola stok masuk, pantau kadaluarsa, dan retur.</p>
+            </div>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead class="bg-gray-50">
-              <tr class="text-left text-gray-600">
-                <th class="px-4 py-3">No</th>
-                <th class="px-4 py-3">Nama Barang</th>
-                <th class="px-4 py-3 text-right">Harga</th>
-                <th class="px-4 py-3">Tanggal Produksi</th>
-                <th class="px-4 py-3">Tanggal Expired</th>
-                <th class="px-4 py-3 text-right">Masuk</th>
-                <th class="px-4 py-3 text-right">Keluar</th>
-                <th class="px-4 py-3 text-right">Sisa</th>
-                <th class="px-4 py-3 text-center">Aksi</th>
-              </tr>
-            </thead>
+            {{-- Filter Cabang (Opsional - Jika ingin pindah cabang lewat sini) --}}
 
-            <tbody class="bg-white divide-y">
-              @foreach($stoks as $index => $item)
-              @php $sisa = ($item->masuk ?? 0) - ($item->keluar ?? 0); @endphp
-              <tr class="hover:bg-gray-50">
-                <td class="px-4 py-3 text-sm text-gray-700">{{ $index + 1 }}</td>
-                <td class="px-4 py-3">{{ $item->nama }}</td>
-                <td class="px-4 py-3 text-right">Rp{{ number_format($item->harga ?? 0,0,',','.') }}</td>
-                <td class="px-4 py-3">{{ \Carbon\Carbon::parse($item->produksi ?? $item->tanggal_produksi ?? now())->format('d/m/yy') }}</td>
-                <td class="px-4 py-3">{{ \Carbon\Carbon::parse($item->expired ?? $item->tanggal_kadaluarsa ?? now())->format('d/m/yy') }}</td>
-                <td class="px-4 py-3 text-right text-gray-700">{{ $item->masuk ?? 0 }}</td>
-                <td class="px-4 py-3 text-right text-gray-700">{{ $item->keluar ?? 0 }}</td>
-                <td class="px-4 py-3 text-right font-semibold">{{ $sisa }}</td>
-                <td class="px-4 py-3 text-center">
-                  <div class="inline-flex gap-2">
-                    <button class="px-3 py-1 text-sm bg-white border rounded open-view" data-json='@json($item)'>Lihat</button>
-                    <button class="px-3 py-1 text-sm bg-green-500 text-white rounded open-edit" data-json='@json($item)'>Edit</button>
-                    <form action="{{ route('stok.destroy', $item->kode ?? '#') }}" method="POST" onsubmit="return confirm('Yakin hapus?')">
-                      @csrf
-                      @method('DELETE')
-                      <button class="px-3 py-1 text-sm bg-red-500 text-white rounded">Hapus</button>
-                    </form>
-                  </div>
-                </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </div>
+        </header>
+
+        {{-- === SECTION TABEL STOK UTAMA === --}}
+        <section class="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
+            <div class="p-4 border-b border-gray-200 flex items-center justify-between bg-gray-50">
+                <div class="text-sm text-gray-600 font-medium">
+                    @if($cabangDipilih)
+                        Menampilkan data stok untuk <strong>{{ $cabangDipilih }}</strong>.
+                    @else
+                        Menampilkan akumulasi data dari <strong>semua cabang</strong>.
+                    @endif
+                </div>
+                <div>
+                    <button id="btn-open-modal" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition shadow-sm font-medium text-sm">
+                        <span>+ Tambah Stok Masuk</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm border-collapse">
+                    <thead class="bg-gray-100 border-b text-gray-600 uppercase text-xs tracking-wider">
+                        <tr>
+                            <th class="px-4 py-3 text-left font-semibold">No</th>
+                            <th class="px-4 py-3 text-left font-semibold">Nama Produk</th>
+                            <th class="px-4 py-3 text-right font-semibold">Harga (Rp)</th>
+                            <th class="px-4 py-3 text-center font-semibold">Cabang</th>
+                            <th class="px-4 py-3 text-center font-semibold">Stok</th>
+                            <th class="px-4 py-3 text-center font-semibold">Tgl Masuk</th>
+                            <th class="px-4 py-3 text-center font-semibold">Tgl Kadaluarsa</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200">
+                        @forelse($stoks as $index => $stok)
+                            <tr class="hover:bg-gray-50 transition hidden md:table-row">
+                                <td class="px-4 py-3 text-gray-500">{{ $index + 1 }}</td>
+                                <td class="px-4 py-3 font-medium text-gray-800">
+                                    {{ $stok->produk->nama ?? '-' }}
+                                </td>
+                                <td class="px-4 py-3 text-right text-gray-600">
+                                    Rp{{ number_format($stok->produk->harga ?? 0, 0, ',', '.') }}
+                                </td>
+                                <td class="px-4 py-3 text-center text-gray-600">{{ $stok->cabang }}</td>
+                                <td class="px-4 py-3 text-center">
+                                    <span class="px-2 py-1 rounded-full text-xs font-bold bg-green-100 text-green-700">
+                                        {{ $stok->stok }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-center text-gray-500">
+                                    {{ \Carbon\Carbon::parse($stok->tanggal_masuk)->format('d/m/Y') }}
+                                </td>
+                                <td class="px-4 py-3 text-center font-medium {{ \Carbon\Carbon::parse($stok->tanggal_kadaluarsa)->isPast() ? 'text-red-600' : 'text-gray-600' }}">
+                                    {{ $stok->tanggal_kadaluarsa ? \Carbon\Carbon::parse($stok->tanggal_kadaluarsa)->format('d/m/Y') : '-' }}
+                                    @if(\Carbon\Carbon::parse($stok->tanggal_kadaluarsa)->isPast())
+                                        <span class="text-xs block text-red-500">(Expired)</span>
+                                    @endif
+                                </td>
+                            </tr>
+
+                            {{-- Mobile card view for each stok row (visible on small screens) --}}
+                            <tr class="md:hidden">
+                                <td colspan="7" class="px-4 py-3">
+                                    <div class="bg-white p-3 rounded-lg shadow-sm">
+                                        <div class="flex items-start justify-between">
+                                            <div class="text-sm font-semibold text-gray-800">{{ $stok->produk->nama ?? '-' }}</div>
+                                            <div class="text-sm text-gray-600">Rp{{ number_format($stok->produk->harga ?? 0, 0, ',', '.') }}</div>
+                                        </div>
+                                        <div class="mt-2 grid grid-cols-2 gap-2 text-sm text-gray-600">
+                                            <div>Cabang: <span class="font-medium text-gray-800">{{ $stok->cabang }}</span></div>
+                                            <div>Stok: <span class="font-medium text-gray-800">{{ $stok->stok }}</span></div>
+                                            <div>Tgl Masuk: <span class="font-medium text-gray-800">{{ \Carbon\Carbon::parse($stok->tanggal_masuk)->format('d/m/Y') }}</span></div>
+                                            <div>Tgl Kadaluarsa: <span class="font-medium text-gray-800">{{ $stok->tanggal_kadaluarsa ? \Carbon\Carbon::parse($stok->tanggal_kadaluarsa)->format('d/m/Y') : '-' }}</span></div>
+                                        </div>
+                                        @if(\Carbon\Carbon::parse($stok->tanggal_kadaluarsa)->isPast())
+                                            <div class="mt-2 text-xs text-red-600">Expired</div>
+                                        @endif
+                                    </div>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="7" class="text-center py-8">
+                                    <div class="flex flex-col items-center justify-center text-gray-400">
+                                        <svg class="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"></path></svg>
+                                        <p>Belum ada data stok tersedia.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>
 </div>
 
-<!-- Modal: Tambah / Edit Stok -->
-<div id="modal-stok" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-  <div class="bg-white rounded-lg w-full max-w-xl shadow-lg overflow-hidden">
-    <form id="form-stok" action="{{ route('tambahproduk.store') }}" method="POST" class="p-6 flex flex-col">
-      @csrf
-      <input type="hidden" name="kode_old" id="kode_old" value="">
+{{-- === MODAL TAMBAH STOK (POPUP) === --}}
+<div id="modal-stok" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-4 transition-opacity duration-300">
+    <div class="bg-white rounded-t-lg md:rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden transform scale-100 transition-transform duration-300 h-[92vh] md:h-auto flex flex-col">
+        <form id="form-stok" action="{{ route('stok.store') }}" method="POST" class="flex flex-col flex-1 overflow-auto">
+            @csrf
 
-      <!-- Scrollable table container -->
-      <div class="overflow-y-auto max-h-96 border rounded mb-4">
-        <table class="table-auto w-full border-collapse border border-gray-300">
-          <thead class="sticky top-0 bg-gray-100">
-            <tr>
-              <th class="border px-2 py-1">Nama Roti</th>
-              <th class="border px-2 py-1">Harga</th>
-              <th class="border px-2 py-1">Jumlah</th>
-            </tr>
-          </thead>
-          <tbody>
-            @php
-                $rotis = [
-                    ['nama' => 'Roti A', 'harga' => 5000],
-                    ['nama' => 'Roti B', 'harga' => 5500],
-                    ['nama' => 'Roti C', 'harga' => 6000],
-                    ['nama' => 'Roti D', 'harga' => 5200],
-                    ['nama' => 'Roti E', 'harga' => 5800],
-                    ['nama' => 'Roti F', 'harga' => 5300],
-                    ['nama' => 'Roti G', 'harga' => 5700],
-                    ['nama' => 'Roti H', 'harga' => 5600],
-                    ['nama' => 'Roti I', 'harga' => 5900],
-                    ['nama' => 'Roti J', 'harga' => 6100],
-                    ['nama' => 'Roti K', 'harga' => 6200],
-                    ['nama' => 'Roti L', 'harga' => 6000],
-                    ['nama' => 'Roti M', 'harga' => 6300],
-                    ['nama' => 'Roti N', 'harga' => 6400],
-                    ['nama' => 'Roti O', 'harga' => 6500],
-                    ['nama' => 'Roti P', 'harga' => 6600],
-                    ['nama' => 'Roti Q', 'harga' => 6700],
-                    ['nama' => 'Roti R', 'harga' => 6800],
-                    ['nama' => 'Roti S', 'harga' => 6900],
-                    ['nama' => 'Roti T', 'harga' => 7000],
-                    ['nama' => 'Roti U', 'harga' => 7100],
-                    ['nama' => 'Roti V', 'harga' => 7200],
-                    ['nama' => 'Roti W', 'harga' => 7300],
-                    ['nama' => 'Roti X', 'harga' => 7400],
-                    ['nama' => 'Roti Y', 'harga' => 7500],
-                    ['nama' => 'Roti Z', 'harga' => 7600],
-                ];
-            @endphp
+            {{-- Modal Header --}}
+            <div class="px-6 py-4 border-b bg-gray-50 flex justify-between items-center">
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800">📦 Tambah Stok Masuk</h3>
+                    <p class="text-xs text-gray-500">Stok yang ditambahkan akan tercatat sebagai stok baru.</p>
+                </div>
+                <button type="button" id="modal-close" class="text-gray-400 hover:text-red-500 transition rounded-full p-1 hover:bg-red-50">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
 
-            @foreach($rotis as $index => $roti)
-                <tr>
-                    <td class="border px-2 py-1">{{ $roti['nama'] }}</td>
-                    <td class="border px-2 py-1">{{ number_format($roti['harga'], 0, ',', '.') }}</td>
-                    <td class="border px-2 py-1">
-                        <input type="number" name="jumlah[{{ $index }}]" value="0" min="0" class="w-20 border px-1 py-0.5">
-                    </td>
-                </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
+            {{-- Modal Body --}}
+            <div class="p-6 flex-1 overflow-y-auto">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Pilih Cabang <span class="text-red-500">*</span></label>
+                        <select name="cabang" id="select-cabang" required
+                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2">
+                            <option value="" disabled selected>-- Pilih Cabang --</option>
+                            @forelse($cabangs ?? [] as $cabang)
+                                <option value="{{ $cabang->nama_cabang }}" {{ $cabangDipilih == $cabang->nama_cabang ? 'selected' : '' }}>
+                                    {{ $cabang->nama_cabang }}
+                                </option>
+                            @empty
+                                <option value="" disabled>Tidak ada data cabang</option>
+                            @endforelse
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Masuk <span class="text-red-500">*</span></label>
+                        <input type="date" name="tanggal_masuk" value="{{ date('Y-m-d') }}" required
+                            class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 text-sm py-2">
+                    </div>
+                </div>
 
-      <!-- Buttons -->
-      <div class="mt-4 flex justify-end gap-2">
-        <button type="button" id="modal-close" class="px-4 py-2 bg-gray-200 rounded">Batal</button>
-        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Simpan</button>
-      </div>
-    </form>
-  </div>
+                <div class="border border-gray-200 rounded-lg shadow-sm overflow-hidden">
+                    <div class="bg-gray-100 px-4 py-2 border-b">
+                        <h4 class="text-sm font-bold text-gray-700">Daftar Produk</h4>
+                    </div>
+
+                    <div class="overflow-y-auto max-h-60">
+                        <table class="w-full text-sm">
+                            <thead class="sticky top-0 bg-white border-b shadow-sm z-10">
+                                <tr>
+                                    <th class="px-4 py-2 text-left font-medium text-gray-600 w-1/3">Nama Produk</th>
+                                    <th class="px-4 py-2 text-right font-medium text-gray-600 w-1/6">Harga</th>
+                                    {{-- KOLOM BARU UNTUK TANGGAL KADALUARSA --}}
+                                    <th class="px-4 py-2 text-center font-medium text-gray-600 w-1/4">Tgl Kadaluarsa <span class="text-red-500">*</span></th>
+                                    <th class="px-4 py-2 text-center font-medium text-gray-600 w-1/6">Jumlah</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                @forelse($rotis as $roti)
+                                    <tr class="hover:bg-blue-50 transition group">
+                                        <td class="px-4 py-2 text-gray-700 font-medium">
+                                            {{ $roti->nama }}
+                                            <input type="hidden" name="stok[{{ $roti->id }}][produk_id]" value="{{ $roti->id }}">
+                                        </td>
+                                        <td class="px-4 py-2 text-right text-gray-500 text-xs">
+                                            Rp{{ number_format($roti->harga, 0, ',', '.') }}
+                                        </td>
+
+                                        {{-- INPUT TANGGAL KADALUARSA (WAJIB DIISI) --}}
+                                        <td class="px-4 py-2">
+                                            <input type="date"
+                                                   name="stok[{{ $roti->id }}][tanggal_kadaluarsa]"
+                                                   class="w-full border-gray-300 rounded text-xs py-1 focus:border-blue-500 focus:ring-blue-500"
+                                                   placeholder="Pilih tgl">
+                                        </td>
+
+                                        {{-- INPUT JUMLAH --}}
+                                        <td class="px-4 py-2">
+                                            <input type="number"
+                                                   name="stok[{{ $roti->id }}][jumlah]"
+                                                   value="0" min="0"
+                                                   class="w-full border-gray-300 rounded text-center text-sm py-1 focus:border-blue-500 focus:ring-blue-500 font-bold text-gray-700 bg-gray-50 focus:bg-white transition"
+                                                   onfocus="if(this.value==0) this.value=''">
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-6 text-center text-gray-500 bg-gray-50">
+                                            Belum ada produk master.
+                                            <a href="{{ route('tambahproduk.index') }}" class="text-blue-600 hover:underline">Tambah Produk Dulu</a>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <p class="mt-2 text-xs text-gray-400 text-right">Pastikan tanggal kadaluarsa diisi untuk produk yang jumlahnya > 0.</p>
+            </div>
+
+            {{-- Modal Footer --}}
+            <div class="px-6 py-4 bg-gray-50 border-t flex justify-end gap-3 sticky bottom-0 md:static">
+                <button type="button" id="modal-close-footer"
+                    class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition font-medium text-sm">
+                    Batal
+                </button>
+                <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium text-sm shadow-sm">
+                    Simpan Stok
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
 
-
+{{-- === SCRIPT JAVASCRIPT === --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  const modal = document.getElementById('modal-stok');
-  const btnOpen = document.getElementById('btn-open-modal');
-  const btnClose = document.querySelectorAll('#modal-close');
+    const modal = document.getElementById('modal-stok');
+    const btnOpen = document.getElementById('btn-open-modal');
+    const btnCloseList = document.querySelectorAll('#modal-close, #modal-close-footer');
+    const formStok = document.getElementById('form-stok');
 
-  btnOpen.addEventListener('click', () => {
-    // clear form for new stok
-    document.getElementById('form-stok').reset();
-    document.getElementById('kode_old').value = '';
-    modal.classList.remove('hidden');
-  });
+    // Buka Modal
+    if(btnOpen){
+        btnOpen.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            // Opsional: Reset form saat dibuka agar bersih
+            // formStok.reset();
+        });
+    }
 
-  btnClose.forEach(b => b.addEventListener('click', () => modal.classList.add('hidden')));
-
-  // open edit modal from row
-  document.querySelectorAll('.open-edit').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const data = JSON.parse(this.dataset.json);
-      document.getElementById('kode_old').value = data.kode ?? '';
-      document.getElementById('stok-kode').value = data.kode ?? '';
-      document.getElementById('stok-nama').value = data.nama ?? '';
-      document.getElementById('stok-harga').value = data.harga ?? '';
-      document.getElementById('stok-produksi').value = data.produksi ?? data.tanggal_produksi ?? '';
-      document.getElementById('stok-expired').value = data.expired ?? data.tanggal_kadaluarsa ?? '';
-      document.getElementById('stok-masuk').value = data.masuk ?? 0;
-      document.getElementById('stok-keluar').value = data.keluar ?? 0;
-      modal.classList.remove('hidden');
+    // Tutup Modal (Tombol X dan Batal)
+    btnCloseList.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
     });
-  });
 
-  // simple view handler (readonly alert)
-  document.querySelectorAll('.open-view').forEach(btn => {
-    btn.addEventListener('click', function () {
-      const d = JSON.parse(this.dataset.json);
-      alert(`Kode: ${d.kode}\nNama: ${d.nama}\nHarga: Rp${d.harga}\nProduksi: ${d.produksi}\nExpired: ${d.expired}\nMasuk: ${d.masuk}\nKeluar: ${d.keluar}`);
+    // Tutup Modal (Klik area luar)
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
     });
-  });
+
+    // Validasi Sederhana sebelum Submit (Opsional)
+    // Mencegah submit jika ada jumlah > 0 tapi tanggal kadaluarsa kosong
+    formStok.addEventListener('submit', function(e) {
+        let isValid = true;
+        const inputs = formStok.querySelectorAll('tbody tr');
+
+        inputs.forEach(row => {
+            const jumlah = row.querySelector('input[type="number"]').value;
+            const tgl = row.querySelector('input[type="date"]').value;
+
+            if (jumlah > 0 && !tgl) {
+                isValid = false;
+                row.querySelector('input[type="date"]').classList.add('border-red-500');
+            } else {
+                row.querySelector('input[type="date"]').classList.remove('border-red-500');
+            }
+        });
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('Harap isi Tanggal Kadaluarsa untuk produk yang stoknya ditambahkan!');
+        }
+    });
 });
 </script>
 @endsection

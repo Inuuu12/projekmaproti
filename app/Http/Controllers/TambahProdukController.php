@@ -7,48 +7,69 @@ use App\Models\Produk;
 
 class TambahProdukController extends Controller
 {
-    // Tampilkan halaman dashboard
-     public function create()
+    // ✅ Tampilkan halaman tambah produk
+    public function create()
     {
         $produks = Produk::all();
-        return view('admin.tambahproduk', compact('produks')); // pastikan file view ini ada
+        return view('admin.tambahproduk', compact('produks'));
     }
 
+    // ✅ Tampilkan daftar produk
     public function index()
     {
         $produks = Produk::all();
         return view('admin.tambahproduk', compact('produks'));
     }
 
-
-    // Simpan produk baru dari form kasir
+    // ✅ Simpan produk baru TANPA menambahkan stok otomatis ke semua cabang
     public function store(Request $request)
     {
-        // Validasi input
-    $validated = $request->validate([
-        'nama' => 'required|string|max:255',
-        'harga' => 'required|numeric|min:0',
-        'tanggal_kadaluarsa' => 'required|date',
-    ]);
-        // Simpan ke database
-    Produk::create([
-        'nama' => $validated['nama'],
-        'harga' => $validated['harga'],
-        'tanggal_kadaluarsa' => $validated['tanggal_kadaluarsa'],
-    ]);
+        // 1. UBAH VALIDASI
+        // Hapus 'tanggal_kadaluarsa', ganti jadi 'deskripsi'
+        $validated = $request->validate([
+            'nama' => 'required|string|max:255',
+            'harga' => 'required|numeric|min:0',
+            'deskripsi' => 'required|string', // <-- INI YANG BARU
+            'foto' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-        // Pastikan data diterima
-        if (!$request->has('produk') || !is_array($request->produk)) {
-        return back()->with('error', 'Tidak ada data produk yang dikirim.');
+        // Handle upload foto (Bagian ini TIDAK BERUBAH)
+        $fotoPath = null;
+        if ($request->hasFile('foto')) {
+            $foto = $request->file('foto');
+            $namaProduk = str_replace(' ', '_', $validated['nama']);
+            $namaProduk = preg_replace('/[^A-Za-z0-9_]/', '', $namaProduk);
+            $namaFile = time() . '_' . $namaProduk . '_' . uniqid() . '.' . $foto->getClientOriginalExtension();
+
+            $foto->move(public_path('images/fotoroti'), $namaFile);
+            $fotoPath = 'images/fotoroti/' . $namaFile;
+        }
+
+        // 2. UBAH SAAT CREATE KE DATABASE
+        // Ganti 'tanggal_kadaluarsa' jadi 'deskripsi'
+        Produk::create([
+            'nama' => $validated['nama'],
+            'harga' => $validated['harga'],
+            'deskripsi' => $validated['deskripsi'], // <-- INI YANG BARU
+            'foto' => $fotoPath,
+        ]);
+
+        return redirect()->route('tambahproduk.index')
+            ->with('success', 'Produk berhasil ditambahkan! Tambahkan stok melalui halaman Stok.');
     }
 
-        // Redirect ke dashboard setelah simpan
-        return redirect()->route('admin.tambahproduk')->with('success', 'Data produk berhasil disimpan!');
-    }
+
+    // ✅ Hapus produk
     public function destroy($id)
     {
         try {
             $produk = Produk::findOrFail($id);
+
+            // Hapus foto dari storage jika ada
+            if ($produk->foto && file_exists(public_path($produk->foto))) {
+                unlink(public_path($produk->foto));
+            }
+
             $produk->delete();
 
             return redirect()->route('tambahproduk.index')

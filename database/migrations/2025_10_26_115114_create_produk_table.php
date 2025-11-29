@@ -12,7 +12,8 @@ return new class extends Migration
             $table->id();
             $table->string('nama'); // Nama roti
             $table->decimal('harga', 10, 2)->nullable(); // Harga per pcs/kg
-            $table->date('tanggal_kadaluarsa')->nullable(); // Expired date
+            $table->string('deskripsi');
+            $table->string('foto')->nullable();
             $table->timestamps();
         });
     }

@@ -48,5 +48,7 @@
         © {{ date('Y') }} La Fleur a Tory — All rights reserved.
     </footer>
 
+    @stack('scripts')
+
 </body>
 </html>

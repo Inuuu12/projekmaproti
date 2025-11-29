@@ -9,11 +9,14 @@ class Produk extends Model
 {
     use HasFactory;
 
-    protected $table = 'produks';
+    protected $table = 'produks'; // Pastikan nama tabel benar
+    protected $guarded = [];
 
-    protected $fillable = [
-        'nama',
-        'harga',
-        'tanggal_kadaluarsa',
-    ];
+    // --- INI ADALAH JEMBATANNYA ---
+    // Tanpa fungsi ini, KasirController tidak bisa membaca stok
+    public function stok()
+    {
+        // Artinya: Satu Produk punya Banyak data Stok
+        return $this->hasMany(Stok::class, 'produk_id', 'id');
+    }
 }

@@ -3,309 +3,309 @@
 @section('content')
 <div class="min-h-screen p-6 bg-gradient-to-b from-gray-200 to-gray-100">
   <div class="max-w-6xl mx-auto">
-    <div class="flex items-center justify-between mb-4">
-      <div>
-        <h1 class="text-2xl font-semibold text-gray-800">Daftar Retur</h1>
-        <p class="text-sm text-gray-500">Kelola data retur produk cabang.</p>
-      </div>
 
-      <div class="flex items-center gap-3">
-        <div class="flex gap-2">
-          <select class="px-3 py-2 bg-white border border-gray-200 rounded text-sm">
-            <option>Filter Barang</option>
-          </select>
-          <select class="px-3 py-2 bg-white border border-gray-200 rounded text-sm">
-            <option>Filter Tanggal</option>
-          </select>
+    {{-- ALERT PESAN --}}
+    @if(session('success'))
+        <div class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    {{-- HEADER --}}
+    <header class="bg-gray-800/90 text-gray-100 rounded-lg px-4 md:px-6 py-4 mb-6 sticky top-0 z-30 backdrop-blur border border-gray-700/40">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+        <div>
+          <h1 class="text-2xl font-semibold">Daftar Retur Barang</h1>
+          <p class="text-sm text-gray-300 mt-1">
+            @if($cabangDipilih)
+                Data retur untuk cabang: <strong class="text-white">{{ $cabangDipilih }}</strong>
+            @else
+                Menampilkan semua data retur (Otomatis & Manual).
+            @endif
+          </p>
         </div>
 
-        <button id="btn-open-create" class="ml-2 inline-flex items-center justify-center w-9 h-9 bg-white border border-gray-200 rounded shadow hover:bg-gray-50" title="Tambah Retur">
-          <span class="text-xl leading-none text-gray-700">+</span>
-        </button>
-      </div>
-    </div>
+        <div class="flex items-center gap-3">
+          <form action="{{ route('admin.retur.index') }}" method="GET" class="flex items-center">
+              <label for="filter-cabang" class="sr-only">Filter Cabang</label>
+              <select id="filter-cabang" name="cabang" onchange="this.form.submit()" class="px-3 py-2 bg-white text-gray-800 border border-gray-200 rounded text-sm shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                  <option value="">-- Semua Cabang --</option>
+                  @foreach($cabangs as $c)
+                      <option value="{{ $c->nama_cabang }}" {{ $cabangDipilih == $c->nama_cabang ? 'selected' : '' }}>
+                          {{ $c->nama_cabang }}
+                      </option>
+                  @endforeach
+              </select>
+          </form>
 
+          <button id="btn-open-create" class="ml-2 inline-flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition text-sm font-medium">
+            <span>+ Input Retur Manual</span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    {{-- TABEL DATA --}}
     <section class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-4 border-b border-gray-200">
-        <p class="text-sm text-gray-500">Daftar retur produk di cabang.</p>
-      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Barang</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabang</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tanggal Retur</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alasan</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
+            </tr>
+          </thead>
 
-      <div class="p-4">
-        @php
-          $rows = $returs ?? collect([
-            (object)['kode'=>'Rm-010925','nama'=>'Roti Manis','jumlah'=>30,'tanggal'=>'2025-09-03','alasan'=>'Lebih dari 3 hari'],
-          ]);
-        @endphp
+          <tbody class="bg-white divide-y divide-gray-100">
+            @forelse($returs as $index => $retur)
+            <tr class="hover:bg-gray-50 transition hidden md:table-row">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $index + 1 }}</td>
 
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-600">Kode</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-600">Nama Barang</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-600">Jumlah</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-600">Tanggal</th>
-                <th class="px-6 py-3 text-left text-sm font-medium text-gray-600">Alasan</th>
-                <th class="px-6 py-3 text-center text-sm font-medium text-gray-600">Aksi</th>
-              </tr>
-            </thead>
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                  {{ $retur->produk->nama ?? 'Produk Terhapus' }}
+              </td>
 
-            <tbody class="bg-white divide-y divide-gray-100">
-              @foreach($rows as $retur)
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $retur->kode ?? $retur['kode'] }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">{{ $retur->nama ?? $retur['nama'] }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-center text-gray-700">{{ $retur->jumlah ?? $retur['jumlah'] }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                  {{ \Carbon\Carbon::parse($retur->tanggal ?? ($retur['tanggal'] ?? null))->format('d/m/Y') ?? ($retur['tanggal'] ?? '') }}
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                  {{ $retur->cabang }}
+              </td>
+
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-center font-bold text-red-600">
+                  {{ $retur->jumlah }}
+              </td>
+
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                {{ \Carbon\Carbon::parse($retur->tanggal_retur)->format('d/m/Y') }}
+              </td>
+
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600 max-w-xs truncate">
+                  {{ $retur->alasan }}
+              </td>
+
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                <div class="inline-flex items-center gap-2">
+                  {{-- Tombol Lihat --}}
+                  <button
+                    class="text-blue-600 hover:text-blue-800 open-view"
+                    data-nama="{{ $retur->produk->nama ?? '-' }}"
+                    data-cabang="{{ $retur->cabang }}"
+                    data-jumlah="{{ $retur->jumlah }}"
+                    data-tanggal="{{ \Carbon\Carbon::parse($retur->tanggal_retur)->format('d F Y') }}"
+                    data-alasan="{{ $retur->alasan }}"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  </button>
+
+                  {{-- Tombol Hapus --}}
+                  <button
+                    type="button"
+                    class="text-red-600 hover:text-red-800 open-delete"
+                    data-delete-url="{{ route('retur.destroy', $retur->id) }}"
+                    data-nama="{{ $retur->produk->nama ?? '-' }}"
+                  >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+
+            {{-- Mobile stacked card for small screens --}}
+            <tr class="md:hidden">
+                <td colspan="7" class="px-4 py-3">
+                    <div class="bg-white p-3 rounded-lg shadow-sm">
+                        <div class="flex items-center justify-between">
+                            <div class="text-sm font-semibold text-gray-800">{{ $retur->produk->nama ?? 'Produk Terhapus' }}</div>
+                            <div class="text-sm text-gray-600">{{ \Carbon\Carbon::parse($retur->tanggal_retur)->format('d/m/Y') }}</div>
+                        </div>
+                        <div class="mt-2 text-sm text-gray-600 grid grid-cols-2 gap-2">
+                            <div>Cabang: <span class="font-medium text-gray-800">{{ $retur->cabang }}</span></div>
+                            <div>Jumlah: <span class="font-medium text-red-600">{{ $retur->jumlah }}</span></div>
+                            <div class="col-span-2">Alasan: <span class="font-medium text-gray-700">{{ $retur->alasan }}</span></div>
+                        </div>
+                        <div class="mt-3 flex gap-2">
+                            <button class="flex-1 px-3 py-2 bg-blue-600 text-white rounded text-sm open-view" data-nama="{{ $retur->produk->nama ?? '-' }}" data-cabang="{{ $retur->cabang }}" data-jumlah="{{ $retur->jumlah }}" data-tanggal="{{ \Carbon\Carbon::parse($retur->tanggal_retur)->format('d F Y') }}" data-alasan="{{ $retur->alasan }}">Lihat</button>
+                            <button class="flex-1 px-3 py-2 bg-red-600 text-white rounded text-sm open-delete" data-delete-url="{{ route('retur.destroy', $retur->id) }}" data-nama="{{ $retur->produk->nama ?? '-' }}">Hapus</button>
+                        </div>
+                    </div>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ $retur->alasan ?? $retur['alasan'] }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
-                  <div class="inline-flex items-center gap-2">
-                    <button
-                      class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50 open-view"
-                      data-kode="{{ $retur->kode ?? $retur['kode'] }}"
-                      data-nama="{{ $retur->nama ?? $retur['nama'] }}"
-                      data-jumlah="{{ $retur->jumlah ?? $retur['jumlah'] }}"
-                      data-tanggal="{{ \Carbon\Carbon::parse($retur->tanggal ?? ($retur['tanggal'] ?? null))->format('d/m/y') ?? '' }}"
-                      data-alasan="{{ $retur->alasan ?? $retur['alasan'] }}"
-                    >Lihat</button>
-
-                    <button
-                      class="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50 open-edit"
-                      data-kode="{{ $retur->kode ?? $retur['kode'] }}"
-                      data-id="{{ $retur->id ?? '' }}"
-                      data-nama="{{ $retur->nama ?? $retur['nama'] }}"
-                      data-jumlah="{{ $retur->jumlah ?? $retur['jumlah'] }}"
-                      data-tanggal="{{ \Carbon\Carbon::parse($retur->tanggal ?? ($retur['tanggal'] ?? null))->format('Y-m-d') ?? '' }}"
-                      data-alasan="{{ $retur->alasan ?? $retur['alasan'] }}"
-                      data-update-url="{{ route('admin.retur.update', $retur->kode ?? ($retur['kode'] ?? '#')) }}"
-                    >Edit</button>
-
-                    <button
-                      type="button"
-                      class="inline-flex items-center justify-center w-9 h-9 bg-white border border-gray-200 rounded text-gray-600 hover:bg-gray-50 open-delete"
-                      data-delete-url="{{ route('admin.retur.destroy', $retur->kode ?? ($retur['kode'] ?? '#')) }}"
-                      data-kode="{{ $retur->kode ?? $retur['kode'] }}"
-                      data-nama="{{ $retur->nama ?? $retur['nama'] }}"
-                    >
-                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                      </svg>
-                    </button>
-                  </div>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="7" class="text-center py-8 text-gray-500">
+                    Belum ada data retur.
                 </td>
-              </tr>
-              @endforeach
-            </tbody>
-          </table>
-        </div>
-
-        <div class="mt-4 flex items-center justify-between">
-          <div class="text-sm text-gray-500">Menampilkan {{ $rows->count() }} entri</div>
-          <div class="flex items-center gap-2">
-            <button class="px-3 py-1 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50">Export</button>
-            <button class="px-3 py-1 border border-gray-200 rounded text-sm text-gray-700 hover:bg-gray-50" onclick="location.reload()">Refresh</button>
-          </div>
-        </div>
+            </tr>
+            @endforelse
+          </tbody>
+        </table>
       </div>
     </section>
   </div>
 </div>
 
-<!-- View Modal -->
-<div id="modal-view" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
-  <div class="bg-white rounded-lg w-full max-w-2xl shadow-lg overflow-hidden">
-    <div class="flex items-center justify-between px-6 py-3 border-b">
-      <h3 class="text-lg font-semibold">Lihat Retur</h3>
-      <button class="text-gray-600 close-modal" data-target="modal-view">✕</button>
+{{-- === MODAL VIEW === --}}
+<div id="modal-view" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+  <div class="bg-white rounded-t-lg md:rounded-lg w-full max-w-lg shadow-xl overflow-hidden transform transition-all flex flex-col h-[92vh] md:h-auto">
+    <div class="px-6 py-3 md:py-4 border-b bg-gray-50 flex justify-between items-center">
+      <h3 class="text-lg font-bold text-gray-800">Detail Retur</h3>
+      <button class="text-gray-400 hover:text-gray-600 close-modal" data-target="modal-view">✕</button>
     </div>
-    <div class="p-6 space-y-4">
-      <div><strong>Kode:</strong> <span id="view-kode" class="text-gray-800"></span></div>
-      <div><strong>Nama Barang:</strong> <span id="view-nama" class="text-gray-800"></span></div>
-      <div><strong>Jumlah Retur:</strong> <span id="view-jumlah" class="text-gray-800"></span></div>
-      <div><strong>Tanggal:</strong> <span id="view-tanggal" class="text-gray-800"></span></div>
-      <div><strong>Alasan:</strong>
-        <p id="view-alasan" class="mt-2 p-3 bg-gray-50 rounded border text-gray-700"></p>
+    <div class="p-6 space-y-4 overflow-auto flex-1">
+      <div class="grid grid-cols-3 gap-4">
+          <span class="text-sm font-semibold text-gray-500">Nama Barang</span>
+          <span id="view-nama" class="col-span-2 text-sm text-gray-800 font-medium"></span>
+
+          <span class="text-sm font-semibold text-gray-500">Cabang</span>
+          <span id="view-cabang" class="col-span-2 text-sm text-gray-800"></span>
+
+          <span class="text-sm font-semibold text-gray-500">Jumlah</span>
+          <span id="view-jumlah" class="col-span-2 text-sm text-red-600 font-bold"></span>
+
+          <span class="text-sm font-semibold text-gray-500">Tanggal</span>
+          <span id="view-tanggal" class="col-span-2 text-sm text-gray-800"></span>
+      </div>
+      <div>
+        <span class="text-sm font-semibold text-gray-500 block mb-1">Alasan Retur</span>
+        <div id="view-alasan" class="p-3 bg-gray-50 rounded border text-sm text-gray-700 italic"></div>
       </div>
     </div>
-    <div class="px-6 py-3 border-t text-right">
-      <button class="px-4 py-2 bg-gray-700 text-white rounded close-modal" data-target="modal-view">Tutup</button>
+    <div class="px-6 py-3 border-t bg-gray-50 text-right sticky bottom-0 md:static">
+      <button class="px-4 py-2 bg-gray-600 text-white rounded hover:bg-gray-700 transition close-modal" data-target="modal-view">Tutup</button>
     </div>
   </div>
 </div>
 
-<!-- Edit/Create Modal -->
-<div id="modal-edit" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
-  <div class="bg-white rounded-lg w-full max-w-3xl shadow-lg overflow-hidden transform transition-all scale-95">
-    <form id="form-edit" method="POST" action="{{ route('admin.retur.store') }}">
+{{-- === MODAL CREATE (INPUT MANUAL) === --}}
+<div id="modal-create" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+  <div class="bg-white rounded-t-lg md:rounded-lg w-full max-w-xl shadow-xl overflow-hidden flex flex-col h-[92vh] md:h-auto">
+    <form action="{{ route('retur.store') }}" method="POST" class="flex flex-col flex-1 overflow-auto">
       @csrf
-
-      <div class="flex items-center justify-between px-6 py-4 border-b">
-        <div class="flex items-center gap-4">
-          <img src="{{ asset('images/logo.png') }}" alt="logo" class="w-8 h-8 object-contain">
-          <h3 id="modal-edit-title" class="text-xl font-semibold text-gray-800">Form Retur Barang</h3>
-        </div>
-
-        <div class="flex items-center gap-3">
-          <button type="button" class="text-gray-600 close-modal" data-target="modal-edit" aria-label="Close">✕</button>
-          <button type="submit" class="ml-2 px-4 py-2 bg-[#3b2a29] text-white rounded-full shadow">Simpan</button>
-        </div>
+      <div class="px-6 py-3 md:py-4 border-b bg-gray-50 flex justify-between items-center">
+        <h3 class="text-lg font-bold text-gray-800">Input Retur Manual</h3>
+        <button type="button" class="text-gray-400 hover:text-gray-600 close-modal" data-target="modal-create">✕</button>
       </div>
 
-      <div class="p-6 space-y-4">
-        <input type="hidden" id="edit-kode" name="kode" value="">
-        <input type="hidden" id="edit-id" name="id" value="">
-
-        <div class="grid grid-cols-12 gap-4 items-center">
-          <label class="col-span-3 text-sm font-medium text-gray-700">Nama Barang</label>
-          <div class="col-span-9">
-            <select id="edit-nama" name="nama" class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-gray-700 focus:border-[#3b2a29] focus:ring-[#3b2a29]">
-              <option value="" disabled selected>Pilih Barang</option>
-              @foreach($produk ?? [] as $p)
-                <option value="{{ $p['nama'] }} [{{ $p['kode'] ?? '' }}]">{{ $p['nama'] }} [{{ $p['kode'] ?? '' }}]</option>
-              @endforeach
+      <div class="p-6 space-y-4 flex-1 overflow-auto">
+        {{-- Pilih Produk --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Pilih Barang</label>
+            <select name="produk_id" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm">
+                <option value="" disabled selected>-- Pilih Produk --</option>
+                @foreach($produks as $p)
+                    <option value="{{ $p->id }}">{{ $p->nama }}</option>
+                @endforeach
             </select>
-          </div>
+        </div>
 
-          <label class="col-span-3 text-sm font-medium text-gray-700">Jumlah Retur</label>
-          <div class="col-span-9">
-            <input id="edit-jumlah" name="jumlah" type="number" min="1" placeholder="Jumlah Retur" class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-gray-700 focus:border-[#3b2a29] focus:ring-[#3b2a29]" />
-          </div>
+        {{-- Pilih Cabang --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Cabang</label>
+            <select name="cabang" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm">
+                @foreach($cabangs as $c)
+                    <option value="{{ $c->nama_cabang }}" {{ $cabangDipilih == $c->nama_cabang ? 'selected' : '' }}>
+                        {{ $c->nama_cabang }}
+                    </option>
+                @endforeach
+            </select>
+        </div>
 
-          <label class="col-span-3 text-sm font-medium text-gray-700">Tanggal Retur</label>
-          <div class="col-span-9">
-            <input id="edit-tanggal" name="tanggal" type="date" class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-gray-700 focus:border-[#3b2a29] focus:ring-[#3b2a29]" />
-          </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+                <input type="number" name="jumlah" min="1" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm" placeholder="Contoh: 5">
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                <input type="date" name="tanggal" value="{{ date('Y-m-d') }}" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm">
+            </div>
+        </div>
 
-          <label class="col-span-3 text-sm font-medium text-gray-700">Alasan</label>
-          <div class="col-span-9">
-            <textarea id="edit-alasan" name="alasan" rows="5" placeholder="Tuliskan alasan retur" class="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-3 text-gray-700 focus:border-[#3b2a29] focus:ring-[#3b2a29]"></textarea>
-          </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Alasan</label>
+            <textarea name="alasan" rows="3" required class="w-full rounded border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 p-2 text-sm" placeholder="Contoh: Rusak saat pengiriman / Kemasan sobek"></textarea>
         </div>
       </div>
 
-      <div class="px-6 py-3 border-t text-right">
-        <button type="button" class="px-4 py-2 bg-gray-200 rounded close-modal" data-target="modal-edit">Batal</button>
+      <div class="px-6 py-4 border-t bg-gray-50 flex justify-end gap-2 sticky bottom-0 md:static">
+        <button type="button" class="px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition close-modal" data-target="modal-create">Batal</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Simpan</button>
       </div>
     </form>
   </div>
 </div>
 
-<!-- Delete Modal -->
-<div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-4">
-  <div class="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden transform transition-all scale-95 hover:scale-100 duration-300">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-      <h3 class="text-xl font-semibold text-gray-800">Konfirmasi Hapus</h3>
-      <button class="text-gray-500 hover:text-gray-700 text-2xl close-modal" data-target="modal-delete">×</button>
-    </div>
+{{-- === MODAL DELETE === --}}
+<div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+  <div class="bg-white rounded-t-lg md:rounded-xl w-full max-w-sm shadow-xl overflow-hidden p-6 text-center">
+      <h3 class="text-xl font-bold text-gray-800 mb-2">Konfirmasi Hapus</h3>
+      <p class="text-gray-600 mb-6">Yakin ingin menghapus data retur <br> <strong id="delete-info" class="text-gray-800"></strong>?</p>
 
-    <div class="p-6 text-center">
-      <p class="text-gray-600">Apakah Anda yakin ingin menghapus retur berikut?</p>
-      <p class="mt-4 text-lg font-semibold text-gray-900" id="delete-info">Data Retur</p>
-    </div>
-
-    <div class="px-6 py-4 border-t border-gray-200 flex justify-center gap-4">
-      <button class="px-6 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-xl text-lg font-medium transition-all close-modal" data-target="modal-delete">Batal</button>
-
-      <form id="form-delete" method="POST" action="#" class="inline-block">
-        @csrf
-        @method('DELETE')
-        <button type="submit" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-lg font-medium transition-all">Hapus</button>
-      </form>
-    </div>
+      <div class="flex justify-center gap-4">
+        <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition close-modal" data-target="modal-delete">Batal</button>
+        <form id="form-delete" method="POST" action="#">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Hapus</button>
+        </form>
+      </div>
   </div>
 </div>
 
+{{-- === JAVASCRIPT === --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-  // Open create
-  document.getElementById('btn-open-create')?.addEventListener('click', function () {
-    const form = document.getElementById('form-edit');
-    form.reset();
-    form.action = "{{ route('admin.retur.store') }}";
-    const methodInput = form.querySelector('input[name=\"_method\"]');
-    if (methodInput) methodInput.remove();
-    document.getElementById('edit-kode').value = '';
-    document.getElementById('modal-edit').classList.remove('hidden');
+
+  // Logic Modal Create
+  const btnCreate = document.getElementById('btn-open-create');
+  const modalCreate = document.getElementById('modal-create');
+  if(btnCreate) {
+      btnCreate.addEventListener('click', () => {
+          modalCreate.classList.remove('hidden');
+      });
+  }
+
+  // Logic Modal View
+  document.querySelectorAll('.open-view').forEach(btn => {
+      btn.addEventListener('click', function() {
+          document.getElementById('view-nama').textContent = this.dataset.nama;
+          document.getElementById('view-cabang').textContent = this.dataset.cabang;
+          document.getElementById('view-jumlah').textContent = this.dataset.jumlah + ' Pcs';
+          document.getElementById('view-tanggal').textContent = this.dataset.tanggal;
+          document.getElementById('view-alasan').textContent = this.dataset.alasan;
+          document.getElementById('modal-view').classList.remove('hidden');
+      });
   });
 
-  // View
-  document.querySelectorAll('.open-view').forEach(btn => btn.addEventListener('click', function () {
-    document.getElementById('view-kode').textContent = this.dataset.kode || '';
-    document.getElementById('view-nama').textContent = this.dataset.nama || '';
-    document.getElementById('view-jumlah').textContent = this.dataset.jumlah || '';
-    document.getElementById('view-tanggal').textContent = this.dataset.tanggal || '';
-    document.getElementById('view-alasan').textContent = this.dataset.alasan || '';
-    document.getElementById('modal-view').classList.remove('hidden');
-  }));
-
-  // Edit
-  document.querySelectorAll('.open-edit').forEach(btn => btn.addEventListener('click', function () {
-    const kode = this.dataset.kode || '';
-    const nama = this.dataset.nama || '';
-    const jumlah = this.dataset.jumlah || '';
-    const tanggal = this.dataset.tanggal || '';
-    const alasan = this.dataset.alasan || '';
-    const updateUrl = this.dataset.updateUrl || '#';
-
-    const form = document.getElementById('form-edit');
-    form.action = updateUrl;
-
-    let methodInput = form.querySelector('input[name=\"_method\"]');
-    if (!methodInput) {
-      methodInput = document.createElement('input');
-      methodInput.type = 'hidden';
-      methodInput.name = '_method';
-      form.appendChild(methodInput);
-    }
-    methodInput.value = 'PUT';
-
-    document.getElementById('edit-kode').value = kode;
-
-    const selectNama = document.getElementById('edit-nama');
-    if (selectNama.querySelector('option[value=\"'+nama+'\"]')) {
-      selectNama.value = nama;
-    } else {
-      const opt = document.createElement('option');
-      opt.value = nama;
-      opt.text = nama;
-      opt.selected = true;
-      selectNama.appendChild(opt);
-    }
-
-    document.getElementById('edit-tanggal').value = tanggal || '';
-    document.getElementById('edit-jumlah').value = jumlah;
-    document.getElementById('edit-alasan').value = alasan;
-
-    document.getElementById('modal-edit').classList.remove('hidden');
-  }));
-
-  // Delete
-  document.querySelectorAll('.open-delete').forEach(btn => btn.addEventListener('click', function () {
-    const delUrl = this.dataset.deleteUrl || '#';
-    const kode = this.dataset.kode || '';
-    const nama = this.dataset.nama || '';
-    document.getElementById('delete-info').textContent = kode + ' — ' + nama;
-    const formDelete = document.getElementById('form-delete');
-    formDelete.action = delUrl;
-    document.getElementById('modal-delete').classList.remove('hidden');
-  }));
-
-  // Close handlers
-  document.querySelectorAll('.close-modal').forEach(btn => btn.addEventListener('click', function () {
-    const target = this.dataset.target;
-    if (target) document.getElementById(target).classList.add('hidden');
-    else this.closest('[id^=\"modal-\"]')?.classList.add('hidden');
-  }));
-
-  // overlay click & Esc
-  document.querySelectorAll('[id^=\"modal-\"]').forEach(modal => {
-    modal.addEventListener('click', function (e) {
-      if (e.target === modal) modal.classList.add('hidden');
-    });
+  // Logic Modal Delete
+  document.querySelectorAll('.open-delete').forEach(btn => {
+      btn.addEventListener('click', function() {
+          document.getElementById('delete-info').textContent = this.dataset.nama;
+          document.getElementById('form-delete').action = this.dataset.deleteUrl;
+          document.getElementById('modal-delete').classList.remove('hidden');
+      });
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') document.querySelectorAll('[id^=\"modal-\"]').forEach(m=>m.classList.add('hidden')); });
+
+  // Global Close Modal Logic
+  document.querySelectorAll('.close-modal').forEach(btn => {
+      btn.addEventListener('click', function() {
+          const targetId = this.dataset.target;
+          document.getElementById(targetId).classList.add('hidden');
+      });
+  });
+
+  // Klik di luar modal menutup modal
+  document.querySelectorAll('[id^="modal-"]').forEach(modal => {
+      modal.addEventListener('click', function(e) {
+          if(e.target === modal) {
+              modal.classList.add('hidden');
+          }
+      });
+  });
+
 });
 </script>
 @endsection

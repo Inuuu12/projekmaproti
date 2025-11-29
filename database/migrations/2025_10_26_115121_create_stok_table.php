@@ -10,12 +10,12 @@ return new class extends Migration
     {
         Schema::create('stoks', function (Blueprint $table) {
             $table->id();
-            $table->string('nama'); // nama produk
-            $table->decimal('harga', 15, 2); // harga produk
+            $table->foreignId('produk_id')->constrained('produks')->onDelete('cascade');
             $table->date('tanggal_masuk'); // tanggal masuk stok
             $table->date('tanggal_kadaluarsa')->nullable(); // tanggal kadaluarsa, bisa null
             $table->integer('stok')->default(0); // jumlah stok
-            $table->timestamps(); // created_at & updated_at
+            $table->string('cabang'); // cabang A, B, atau C
+            $table->timestamps();
         });
     }
 
