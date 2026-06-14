@@ -366,51 +366,47 @@ class LaporanController extends Controller
     }
 
     /**
-     * Download single laporan as CSV
+     * Download single laporan as PDF
      */
     public function download($id)
     {
-        $lap = Laporan::findOrFail($id);
+        $lap = Laporan::with('user')->findOrFail($id);
 
-        $header = ['laporan_id','tanggal','judul','produk_id','nama','qty','harga','cabang','batch_id'];
-        $rows = [];
+        $pdf = Pdf::loadView('admin.laporan_single_pdf', compact('lap'));
+        $pdf->setPaper('a4', 'portrait');
 
-        $details = [];
-        if ($lap->deskripsi) {
-            $decoded = json_decode($lap->deskripsi, true);
-            if (is_array($decoded)) $details = $decoded;
-        }
+        $filename = "laporan-detail-{$lap->id}-{$lap->tanggal}.pdf";
+        return $pdf->download($filename);
+    }
 
-        if (count($details) === 0) {
-            $rows[] = [$lap->id, $lap->tanggal, $lap->judul, '', '', '', '', '', ''];
-        } else {
-            foreach ($details as $d) {
-                $rows[] = [
-                    $lap->id,
-                    $lap->tanggal,
-                    $lap->judul,
-                    $d['produk_id'] ?? '',
-                    $d['nama'] ?? '',
-                    $d['qty'] ?? '',
-                    $d['harga'] ?? '',
-                    $d['cabang'] ?? '',
-                    $d['batch_id'] ?? '',
-                ];
-            }
-        }
+    /**
+     * Download single laporan as Excel
+     */
+    public function downloadExcel($id)
+    {
+        $lap = Laporan::with('user')->findOrFail($id);
 
-        $filename = "laporan-{$lap->id}-{$lap->tanggal}.csv";
-        $handle = fopen('php://memory', 'r+');
-        fputcsv($handle, $header);
-        foreach ($rows as $r) {
-            fputcsv($handle, $r);
-        }
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
+        $html = view('admin.laporan_single_excel', compact('lap'))->render();
 
-        return response($csv, 200, [
-            'Content-Type' => 'text/csv; charset=utf-8',
+        $filename = "laporan-detail-{$lap->id}-{$lap->tanggal}.xls";
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
+            'Content-Disposition' => "attachment; filename={$filename}",
+        ]);
+    }
+
+    /**
+     * Export all laporans as Excel
+     */
+    public function exportExcel()
+    {
+        $laporans = Laporan::with('user')->latest()->get();
+
+        $html = view('admin.laporan_excel', compact('laporans'))->render();
+
+        $filename = "laporan-transaksi-" . date('Y-m-d') . ".xls";
+        return response($html, 200, [
+            'Content-Type' => 'application/vnd.ms-excel; charset=utf-8',
             'Content-Disposition' => "attachment; filename={$filename}",
         ]);
     }

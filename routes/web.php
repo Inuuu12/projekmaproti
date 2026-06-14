@@ -11,7 +11,8 @@ use App\Http\Controllers\CompanyProfileController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\LaporanController;
 
-# tampilan awal dan login
+# tampilan awal dan landing page
+Route::get('/', [CompanyProfileController::class, 'show'])->name('company.profile');
 Route::get('/awal', fn() => view('login.awal'))->name('awal');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.process');
@@ -20,6 +21,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 #company profile routes
 Route::get('/company-profile', [CompanyProfileController::class, 'show'])->name('company.profile');
+Route::get('/products', [CompanyProfileController::class, 'products'])->name('company.products');
 
 
 Route::middleware(['auth'])->group(function () {
@@ -78,12 +80,14 @@ Route::middleware(['auth'])->group(function () {
     // 3.c Export harian (CSV)
     Route::get('/admin/laporan/export-daily', [LaporanController::class, 'exportDaily'])->name('laporan.export.daily');
 
-    // 3.d Download single laporan (CSV)
+    // 3.d Download single laporan (PDF)
     Route::get('/admin/laporan/{id}/download', [LaporanController::class, 'download'])->name('laporan.download');
+    Route::get('/admin/laporan/{id}/excel', [LaporanController::class, 'downloadExcel'])->name('laporan.download.excel');
 
     // 4. Hapus Laporan
     Route::delete('/admin/laporan/{id}', [LaporanController::class, 'destroy'])->name('laporan.destroy');
     Route::get('/admin/laporan/export-pdf', [LaporanController::class, 'exportPdf'])->name('laporan.export.pdf');
+    Route::get('/admin/laporan/export-excel', [LaporanController::class, 'exportExcel'])->name('laporan.export.excel');
 });
 
 

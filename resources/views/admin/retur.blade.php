@@ -12,11 +12,11 @@
     @endif
 
     {{-- HEADER --}}
-    <header class="bg-gray-800/90 text-gray-100 rounded-lg px-4 md:px-6 py-4 mb-6 sticky top-0 z-30 backdrop-blur border border-gray-700/40">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <header class="bg-[#151D29] text-gray-100 rounded-2xl p-6 mb-6 relative overflow-hidden border border-gray-800/60 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 relative z-10">
         <div>
-          <h1 class="text-2xl font-semibold">Daftar Retur Barang</h1>
-          <p class="text-sm text-gray-300 mt-1">
+          <h1 class="text-xl font-bold tracking-wide">Daftar Retur Barang</h1>
+          <p class="text-xs text-gray-400 mt-1">
             @if($cabangDipilih)
                 Data retur untuk cabang: <strong class="text-white">{{ $cabangDipilih }}</strong>
             @else
@@ -238,23 +238,6 @@
   </div>
 </div>
 
-{{-- === MODAL DELETE === --}}
-<div id="modal-delete" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-  <div class="bg-white rounded-t-lg md:rounded-xl w-full max-w-sm shadow-xl overflow-hidden p-6 text-center">
-      <h3 class="text-xl font-bold text-gray-800 mb-2">Konfirmasi Hapus</h3>
-      <p class="text-gray-600 mb-6">Yakin ingin menghapus data retur <br> <strong id="delete-info" class="text-gray-800"></strong>?</p>
-
-      <div class="flex justify-center gap-4">
-        <button class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition close-modal" data-target="modal-delete">Batal</button>
-        <form id="form-delete" method="POST" action="#">
-            @csrf
-            @method('DELETE')
-            <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition">Hapus</button>
-        </form>
-      </div>
-  </div>
-</div>
-
 {{-- === JAVASCRIPT === --}}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -280,12 +263,23 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   });
 
-  // Logic Modal Delete
+  // Logic Modal Delete (Using global window.customConfirm)
   document.querySelectorAll('.open-delete').forEach(btn => {
-      btn.addEventListener('click', function() {
-          document.getElementById('delete-info').textContent = this.dataset.nama;
-          document.getElementById('form-delete').action = this.dataset.deleteUrl;
-          document.getElementById('modal-delete').classList.remove('hidden');
+      btn.addEventListener('click', async function() {
+          const deleteUrl = this.dataset.deleteUrl;
+          const nama = this.dataset.nama;
+          const confirmed = await window.customConfirm('Hapus Data Retur', `Apakah Anda yakin ingin menghapus data retur untuk produk "${nama}"?`, 'danger');
+          if (confirmed) {
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = deleteUrl;
+              form.innerHTML = `
+                  <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                  <input type="hidden" name="_method" value="DELETE">
+              `;
+              document.body.appendChild(form);
+              form.submit();
+          }
       });
   });
 

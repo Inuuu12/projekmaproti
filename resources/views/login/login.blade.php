@@ -17,27 +17,27 @@
         <section class="flex-1 flex items-center justify-center px-6 py-16 lg:px-16 order-2 lg:order-1">
             <div class="w-full max-w-md space-y-8">
                 <div class="space-y-3">
-                    <p class="text-sm tracking-[0.4em] uppercase text-black-400">La Fleur a Tory</p>
+                    <p class="text-sm tracking-[0.4em] uppercase text-gray-500">La Fleur a Tory</p>
                     <h1 class="text-4xl sm:text-5xl font-extrabold uppercase leading-tight">
                         Login<br>Admin
                     </h1>
-                    <p class="text-black-300">
+                    <p class="text-gray-600">
                         Masuk untuk melanjutkan perjalanan rasa dan kelola semua kebutuhanmu.
                     </p>
                 </div>
-
+ 
                 @if ($errors->any())
-                    <div class="rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-200 px-4 py-3">
+                    <div class="rounded-xl border border-red-500/40 bg-red-500/10 text-sm text-red-650 px-4 py-3">
                         {{ $errors->first() }}
                     </div>
                 @endif
-
-                <form method="POST" action="{{ route('login.process') }}" class="space-y-6 bg-white border border-black/10 rounded-2xl p-6 backdrop-blur">
+ 
+                <form method="POST" action="{{ route('login.process') }}" class="space-y-6 bg-white border border-black/10 rounded-2xl p-6 shadow-sm">
                     @csrf
                     <div>
-                        <label class="block text-sm font-medium text-black-800 mb-2">Nama / Email / Username</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama / Email / Username</label>
                         <input
-                            class="w-full px-4 py-3 bg-white/30 border  rounded-lg text-black placeholder-gray- focus:outline-none focus:ring-2 focus:ring-white/40"
+                            class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200"
                             type="text"
                             name="login"
                             placeholder="Masukkan nama, email, atau username"
@@ -45,10 +45,10 @@
                         >
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-black-800 mb-2">Password</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
                         <div class="relative">
                             <input
-                                class="w-full px-4 py-3 bg-white/30 border border-black/20 rounded-lg text-black placeholder-White focus:outline-none focus:ring-2 focus:ring-white/40 pr-12"
+                                class="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg text-black placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-200 pr-12"
                                 type="password"
                                 name="password"
                                 id="password"
